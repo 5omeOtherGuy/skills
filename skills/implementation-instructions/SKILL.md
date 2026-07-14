@@ -28,6 +28,10 @@ Use the sections below in this order. Keep every section, writing `None` plus a 
 Name exactly what to implement in one sentence. Cite the authoritative issue, document, ticket, path, or state that the user request is the only specification.
 </task>
 
+<requirements>
+Restate all task-specific behavior, constraints, acceptance criteria, and user decisions the target cannot safely recover from the cited source. Preserve exact values and frozen wording where they matter; do not rely on access to this conversation.
+</requirements>
+
 <current_state>
 Summarize the verified revision/workspace state, current behavior, relevant existing seams, working changes that must be preserved, and anything that could not be verified. If the target does not share the workspace, say how to obtain the exact project and revision. Label time-sensitive facts as a snapshot the target session must re-check.
 </current_state>
@@ -59,9 +63,9 @@ State the implementation depth: minimal useful slice, full feature, or named sub
 </scope_to_implement>
 
 <implementation_notes_requirement>
-Require a running `implementation-notes.html` reviewer-decision log. Before creating it, inspect and preserve any existing file; do not overwrite concurrent or unrelated notes. Record only unspecified decisions, assumptions, deviations, tradeoffs, constraints, caveats, compatibility concerns, follow-up risks, and reviewer warnings—not routine progress or sensitive data.
+Require a running `implementation-notes.html` reviewer-decision log. Before creating it, inspect and preserve any existing file; do not overwrite concurrent or unrelated notes. Record only unspecified decisions, assumptions, deviations, tradeoffs, constraints, caveats, compatibility concerns, follow-up risks, and reviewer warnings—not routine progress or sensitive data. If no entry was needed, require the target to state `No implementation notes` and remove the empty staging file.
 
-Keep the file until every entry has been transferred verbatim in substance to a durable review artifact attached to the change (pull request, merge request, change request, reviewed issue, or equivalent) and read back. Delete it only after verified transfer and ensure deletion is included in the final change set.
+When entries exist, keep the file until every entry has been transferred verbatim in substance to a durable review artifact attached to the change (pull request, merge request, change request, reviewed issue, or equivalent) and read back. Delete it only after verified transfer and ensure deletion is included in the final change set.
 
 If the workflow has no durable artifact that can be updated and read back, include every entry in a clearly labeled final-report section but retain `implementation-notes.html`; final-response delivery cannot be verified before the response is sent. Report that durable handoff and deletion remain pending rather than risking the only copy. Follow approval rules for external artifact changes.
 </implementation_notes_requirement>

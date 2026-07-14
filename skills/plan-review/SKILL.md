@@ -35,7 +35,7 @@ State a 1–10 rubric before scoring. Score the fixed dimensions above and, when
 Report in this order:
 
 1. assumptions and evidence limits;
-2. prioritized findings, highest implementation/maintenance risk first;
+2. prioritized findings, highest implementation/maintenance risk first—each with a plan reference, supporting repository evidence when available, impact, and the smallest concrete plan revision;
 3. unanswered requirements the implementer would otherwise have to guess;
 4. dimension and component scores with concise justification;
 5. overall score and the minimum changes needed to make the plan implementation-ready.

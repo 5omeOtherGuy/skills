@@ -1,6 +1,6 @@
 ---
 name: implement-with-notes
-description: Implement a specification while maintaining implementation-notes.html as a guarded reviewer-decision log, then transfer every entry to the workflow's durable review artifact and verify the handoff before deleting the file. Use when the user asks to implement "with notes," wants durable implementation rationale, or supplies a specification that requires judgment calls.
+description: Implement a specification while maintaining implementation-notes.html as a guarded reviewer-decision log. Transfer every entry to a readable durable review artifact and delete the file only after verified handoff; retain it when no such destination exists. Use when the user asks to implement "with notes," wants durable implementation rationale, or supplies a specification that requires judgment calls.
 ---
 
 # Implement with reviewer notes
@@ -23,6 +23,8 @@ Update the file whenever you make or discover a decision not explicit in the spe
 - a constraint, caveat, compatibility issue, follow-up risk, or reviewer warning.
 
 Keep entries concise, factual, organized HTML. Do not use the file as a routine progress log. Do not record credentials, secrets, personal data, exploit details inappropriate for the review audience, or other sensitive material; record a safe reference instead.
+
+If no reviewer-facing entry was needed, verify the staging file has no entries, state `No implementation notes` in the final response, and remove the empty file. The durable-transfer requirement below applies whenever at least one entry exists.
 
 ## Complete the durable handoff
 

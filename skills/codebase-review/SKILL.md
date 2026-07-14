@@ -31,16 +31,14 @@ Score quality from 1–10 using a stated rubric. Score each source file only whe
 
 ## Report
 
-Order findings by severity and maintenance risk. For each finding include evidence (file and symbol/line where possible), impact, and the smallest credible remediation. Separate confirmed defects from risks or hypotheses.
+Write the report in this order:
 
-End with:
+1. assumptions and scope;
+2. coverage map: inspected, executed, sampled, and not reviewed;
+3. prioritized findings, ordered by severity and maintenance risk;
+4. rubric and component scores;
+5. overall score with rationale;
+6. verification run and exact results;
+7. limitations that prevent stronger conclusions.
 
-- assumptions and scope;
-- coverage map: inspected, executed, sampled, and not reviewed;
-- prioritized findings;
-- rubric and component scores;
-- overall score with rationale;
-- verification run and exact results;
-- limitations that prevent stronger conclusions.
-
-Include specific strengths only when evidence supports them; do not pad the report with vague praise.
+For each finding include evidence (file and symbol/line where possible), impact, confidence (`confirmed`, `risk`, or `hypothesis`), and the smallest credible remediation. Include specific strengths only when evidence supports them; do not pad the report with vague praise.

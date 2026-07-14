@@ -27,7 +27,7 @@ bash ~/.local/share/agent-workflow-skills/skills/agents-hub/scripts/sync-skills.
   --dry-run
 ```
 
-Inspect the dry run, then repeat without `--dry-run`. Add `--skill implementation-instructions` (repeatable) to install only selected skills. The helper never overwrites real paths or foreign links and prunes stale links only with explicit `--prune`.
+Inspect the dry run, then repeat without `--dry-run`. Add `--skill implementation-instructions` (repeatable) to install only selected skills. The helper preflights every selected target and aborts before changes on a path conflict; it never overwrites real paths or foreign links and prunes stale links only with explicit `--prune`.
 
 Do not use the helper for clone-portable repository links: it creates absolute symlinks. On Windows or filesystems without reliable Unix symlinks, use a verified native discovery root, configured additional root, junction, or managed projection as described by `agents-hub`.
 

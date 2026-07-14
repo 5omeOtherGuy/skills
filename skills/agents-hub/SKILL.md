@@ -1,6 +1,6 @@
 ---
 name: agents-hub
-description: Establish, audit, migrate, or repair a single-source skill and instruction hub across coding-agent harnesses. Use before changing skill placement, installing or moving shared skills, editing AGENTS.md/CLAUDE.md or equivalent instruction wiring, onboarding a new harness or machine, or diagnosing discovery, precedence, symlink, import, and scope problems.
+description: Establish, audit, migrate, or repair a single-source skill and instruction hub across coding-agent harnesses. Use before creating, installing, publishing, moving, renaming, or deleting shared skills; editing AGENTS.md, CLAUDE.md, or equivalent instruction wiring; onboarding a harness or machine; or diagnosing discovery, precedence, link, import, override, and scope problems.
 ---
 
 # Agent configuration hub
@@ -20,10 +20,10 @@ Create one canonical source for each shared skill or instruction and project it 
 
 Start with the harnesses named by the user and those relevant to the requested operation. Do not assume a fixed harness list or Unix layout.
 
-1. Record the operating system, shell, home/config/data conventions, filesystem/link capabilities, and whether work runs locally, remotely, in a container, or across filesystems.
+1. Record only environment facts that can affect this change: operating system, shell, home/config/data conventions, filesystem/link capabilities, and whether work runs locally, remotely, in a container, or across filesystems.
 2. Locate named harnesses and record their versions. For a new setup, distinguish intended-but-not-installed harnesses from installed ones.
 3. Perform only enough non-invasive discovery to present real choices. Do not broadly scan private home-directory contents.
-4. Ask one batched round only for choices the request and machine state do not settle:
+4. Ask one batched round only for applicable choices the request and machine state do not settle:
    - Which discovered or intended harnesses are in scope?
    - Is the change global, repository-local, or both?
    - Should a skill auto-trigger, be explicitly invoked, or support both?
@@ -98,7 +98,7 @@ bash scripts/sync-skills.sh \
   --dry-run
 ```
 
-Inspect the dry run, then repeat without `--dry-run`. Add `--target` for another verified target and `--skill` for a selected skill. Use `--prune` only when stale links owned by that hub should be removed. The helper creates absolute links: do not use it for clone-portable repository wiring. It neither configures discovery nor wires instruction files.
+Inspect the dry run, then repeat without `--dry-run`. Add `--target` for another verified target and `--skill` for a selected skill. The helper preflights all selected targets and aborts before changing any of them when it finds a path conflict. Use `--prune` only when stale links owned by that hub should be removed. The helper creates absolute links: do not use it for clone-portable repository wiring. It neither configures discovery nor wires instruction files.
 
 ## 5. Apply changes safely
 

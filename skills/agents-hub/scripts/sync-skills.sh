@@ -16,7 +16,8 @@ Options:
   --prune         Remove broken target links whose recorded destination is in this hub.
   -h, --help      Show this help.
 
-The script never overwrites real files/directories or links owned by another hub.
+The script preflights every target and aborts before changes on any path conflict.
+It never overwrites real files/directories or links owned by another hub.
 EOF
 }
 
@@ -133,11 +134,11 @@ for target in "${targets[@]}"; do
     link="$target/${skill##*/}"
     if [[ -L "$link" ]]; then
       if ! link_matches_skill "$link" "$skill"; then
-        echo "SKIP foreign link: $link -> $(readlink "$link")" >&2
+        echo "CONFLICT foreign link: $link -> $(readlink "$link")" >&2
         conflicts=$((conflicts + 1))
       fi
     elif [[ -e "$link" ]]; then
-      echo "SKIP existing path: $link" >&2
+      echo "CONFLICT existing path: $link" >&2
       conflicts=$((conflicts + 1))
     fi
   done
