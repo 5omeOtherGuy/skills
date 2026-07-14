@@ -16,41 +16,41 @@ Create one canonical source for each shared skill or instruction and project it 
 - Prefer reversible wiring. Inspect the resolved destination before editing through any link.
 - Do not promise universal support: record unsupported mechanisms and use the safest available alternative.
 
-## 1. Inventory the actual setup
+## 1. Discover the machine and narrow scope
 
-Start with the harnesses named by the user and those relevant to the requested operation. Do not assume a fixed harness list.
+Start with the harnesses named by the user and those relevant to the requested operation. Do not assume a fixed harness list or Unix layout.
 
-For each harness:
+1. Record the operating system, shell, home/config/data conventions, filesystem/link capabilities, and whether work runs locally, remotely, in a container, or across filesystems.
+2. Locate named harnesses and record their versions. For a new setup, distinguish intended-but-not-installed harnesses from installed ones.
+3. Perform only enough non-invasive discovery to present real choices. Do not broadly scan private home-directory contents.
+4. Ask one batched round only for choices the request and machine state do not settle:
+   - Which discovered or intended harnesses are in scope?
+   - Is the change global, repository-local, or both?
+   - Should a skill auto-trigger, be explicitly invoked, or support both?
+   - When existing sources conflict, which source should become authoritative?
 
-1. Locate the executable and record its version.
-2. Check environment variables, command-line flags, and configuration that can relocate its home or discovery roots.
-3. Establish, with evidence:
-   - global and repository skill roots;
-   - global and repository instruction files;
-   - ancestor traversal and precedence rules;
-   - support for extra roots, imports, symlinks, junctions, or aliases;
-   - trust, approval, ownership, and permission constraints;
-   - reload or restart behavior.
-4. Inspect only relevant candidate roots with `ls -la`, `readlink`, and a canonical-path tool available on the platform. Do not broadly scan private home-directory contents.
-5. Locate existing canonical files and detect duplicate names, shadowing, overrides, broken links, and generated copies.
+Use a structured-question tool when available. Do not ask for facts inspection can establish or re-ask decisions already supplied. If an answer is unavailable, choose the least destructive option and state the assumption.
+
+## 2. Inventory in-scope harnesses
+
+For each in-scope harness, check environment variables, command-line flags, and configuration that can relocate its home or discovery roots. Establish, with evidence:
+
+- global and repository skill roots;
+- global and repository instruction filenames and formats;
+- ancestor traversal, merge order, replacement/override behavior, and size limits;
+- import/include syntax, path resolution, cycle behavior, and symlink policy;
+- support for extra skill roots, symlinks, junctions, aliases, or managed projections;
+- trust, approval, ownership, sandbox, and permission constraints;
+- reload or restart behavior.
+
+Inspect only relevant candidate roots with platform-appropriate directory, link, and canonical-path tools. Locate existing canonical files and detect duplicate names, shadowing, overrides, broken links, generated copies, and import cycles.
 
 Use a compact working matrix and mark unverified fields `unknown` rather than guessing:
 
-| Harness + version | Global skills | Repo skills | Instruction chain | Projection support | Reload | Evidence |
+| Harness + version | Skills | Instruction chain | Projection support | Reload | State | Evidence |
 |---|---|---|---|---|---|---|
 
-If documentation and observed behavior disagree, trust a minimal functional test and report the discrepancy.
-
-## 2. Close only material scope gaps
-
-After inventory, ask one batched round of questions only for choices the request and machine state do not settle:
-
-- Which of the discovered or requested harnesses are in scope?
-- Is the change global, repository-local, or both?
-- Should a skill auto-trigger, be explicitly invoked, or support both?
-- When existing sources conflict, which source should become authoritative?
-
-Use a structured-question tool when available. Do not ask users for facts that inspection can establish. If an answer is unavailable, choose the least destructive option and state the assumption.
+Use `planned` when a harness is not installed and only documentation was checked, `wired` when filesystem/configuration changes exist, and `verified` only after the harness loads them in a functional test. If documentation and observed behavior disagree, trust a minimal functional test and report the discrepancy.
 
 ## 3. Choose the canonical layout
 
@@ -65,21 +65,31 @@ Keep each skill in `<skill-name>/SKILL.md`. Require a lowercase kebab-case direc
 
 Keep shared instructions concise. Put a harness-specific rule in the harness-specific layer, not in the shared source with an implicit exception.
 
-## 4. Select a projection per harness
+## 4. Select wiring by artifact type
 
-Choose the first verified mechanism that preserves one source of truth:
+Use only mechanisms verified for that harness and version.
+
+For **skills**, prefer in order:
 
 1. Native discovery of the canonical root.
-2. A configured additional discovery root.
-3. A supported import/include from the harness's instruction file.
-4. A symlink, junction, or alias supported by both the platform and harness.
-5. A deterministic managed copy only when no reference mechanism exists, with an ownership marker and repeatable sync command; never hand-edit the projection.
+2. A configured additional skill root.
+3. A symlink, junction, or alias supported by both platform and harness.
+4. A user-approved deterministic managed projection only when no reference mechanism exists.
 
-Use relative repository links when they are supported and must survive clones. Prefer imports or managed projections when symlinks are unreliable on the target filesystem, operating system, archive format, or contributor workflow.
+For **instructions**, prefer in order:
 
-Respect instruction precedence: a higher-precedence override can disconnect lower shared instructions even when every path exists. Preserve required bootstrap/import lines when adding harness-specific content.
+1. Native loading of the canonical shared file when filename, format, and scope agree.
+2. A supported import/include from a thin harness-specific instruction file.
+3. A symlink or junction when the harness and platform both follow it safely.
+4. A user-approved deterministic managed projection only when no reference mechanism exists.
 
-For POSIX symlink projections, use the bundled helper only with explicit, verified paths:
+A prose pointer telling an agent to read another file is wiring only if the harness demonstrably loads and follows it; otherwise treat it as unverified. Never create import cycles. Keep a generated projection reproducible, record its source and hash outside the discovery root when extra files there are unsafe, and never hand-edit it. If no safe projection exists, report that strict single-source operation is unsupported instead of inventing fragile wiring.
+
+Use relative repository links when supported and required to survive clones. Prefer imports or managed projections when links are unreliable on the target filesystem, operating system, archive format, or contributor workflow.
+
+Respect instruction precedence: a higher-precedence override can disconnect lower shared instructions even when every path exists. Preserve required bootstrap/import lines when adding harness-specific content, and verify whether layers merge or replace one another.
+
+For machine-local POSIX skill symlinks, use the bundled helper only with explicit, verified paths:
 
 ```bash
 bash scripts/sync-skills.sh \
@@ -88,16 +98,16 @@ bash scripts/sync-skills.sh \
   --dry-run
 ```
 
-Inspect the dry run, then repeat without `--dry-run`. Add `--target` again for additional verified targets. Use `--prune` only when stale links owned by that hub should be removed. The helper does not configure harness discovery and is not a substitute for verification.
+Inspect the dry run, then repeat without `--dry-run`. Add `--target` for another verified target and `--skill` for a selected skill. Use `--prune` only when stale links owned by that hub should be removed. The helper creates absolute links: do not use it for clone-portable repository wiring. It neither configures discovery nor wires instruction files.
 
 ## 5. Apply changes safely
 
-Before writing, show or establish the mapping `canonical source -> projection` for every in-scope harness.
+Before writing, establish the mapping `canonical source -> projection` for every in-scope skill and instruction file. Read each target and its resolved source before editing so a write-through link cannot modify an unintended file.
 
 - Create parents narrowly; do not replace existing real directories.
 - Move a canonical directory once rather than copying it into another root.
-- Keep content edits at the canonical path. Linked projections need no content sync.
-- Treat foreign links, real directories, override files, and same-name bundled skills as conflicts to resolve explicitly.
+- Keep content edits at the canonical path. Referenced projections need no content sync.
+- Treat foreign links, real directories, override files, same-name bundled skills, and existing imports as conflicts to resolve explicitly.
 - Keep generated projections reproducible and exclude them from manual editing.
 - Follow the active environment's approval rules for destructive or externally visible operations.
 
@@ -107,15 +117,16 @@ When migrating an existing setup, inventory consumers first, establish new proje
 
 Run all applicable checks:
 
-1. Canonical-path check: every projection resolves to the intended source, or every managed copy matches it.
-2. Integrity check: no broken links, duplicate authoritative files, unintended overrides, or name collisions remain.
+1. Canonical-path check: every reference resolves to the intended source, or every managed projection matches its recorded source hash.
+2. Integrity check: no broken links, duplicate authoritative files, unintended overrides, import cycles, name collisions, or truncated instructions remain.
 3. Metadata check: every skill has valid frontmatter and matching directory/name.
-4. Discovery check: each harness lists or loads the skill/instructions from a clean session after any required reload.
+4. Discovery check: each installed harness lists or loads the skill and instruction source from a clean session after any required reload.
 5. Trigger check: auto-trigger and explicit invocation behave according to scope.
-6. Precedence check: repository and harness-specific instructions augment rather than silently replace shared instructions.
+6. Instruction check: use harness introspection or a harmless behavior test to prove shared and harness-specific layers load in the intended order rather than replacing one another.
 7. Isolation check: out-of-scope harnesses and repositories are unchanged.
+8. State check: label uninstalled harnesses `planned`, filesystem-only results `wired`, and only runtime-tested results `verified`.
 
-Report the canonical paths, projections, evidence used, checks run, assumptions, and any unsupported harness/platform behavior. Do not describe wiring as complete when only filesystem checks passed.
+Report canonical paths, projections, evidence, checks, assumptions, and unsupported harness/platform behavior. Do not describe wiring as complete or portable when only filesystem checks passed.
 
 ## Onboard an unfamiliar harness
 
