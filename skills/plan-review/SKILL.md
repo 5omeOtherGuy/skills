@@ -12,7 +12,7 @@ Do not ask the user questions. Work from the plan and available repository evide
 ## Ground the review
 
 1. Identify the plan's stated goal, scope, non-goals, constraints, acceptance criteria, and authoritative references.
-2. When a target repository is available, read applicable instructions and the specific architecture, interfaces, dependencies, tests, and files the plan claims it will change. Do not review from the plan alone while asserting facts about unread code.
+2. When a target codebase/workspace is available, read applicable instructions and the specific architecture, interfaces, dependencies, tests, and files the plan claims it will change. Do not review from the plan alone while asserting facts about unread code.
 3. When only plan text is available, evaluate its internal quality and label codebase-dependent conclusions as unverified.
 4. Reference plan sections, steps, or quotations for every significant finding; reference repository files and symbols when they supply the evidence.
 
@@ -21,16 +21,16 @@ Do not ask the user questions. Work from the plan and available repository evide
 1. **Consistency** — Does the approach follow established architecture, naming, conventions, and dependency direction, or create a parallel system?
 2. **Integration seams** — Are changed contracts, ownership boundaries, data flow, failure behavior, and compatibility expectations explicit?
 3. **Internal reuse** — Does it use existing modules and helpers without forcing unrelated responsibilities into them or duplicating logic that can diverge?
-4. **External reuse** — Does it use the standard library or existing dependencies appropriately? Verify availability and fit before recommending a new library; include compatibility, maintenance, license, and adoption cost.
+4. **External reuse** — Does it use the standard library or existing dependencies appropriately? Verify availability and fit before recommending a new library; include compatibility, maintenance, license, supported platforms, adoption cost, and offline/deployment constraints. Label anything you cannot verify rather than presenting it as an available solution.
 5. **Abstraction level** — Are abstractions justified by current complexity and real reuse, avoiding both speculative layers and brittle copy-paste?
 6. **Feasibility and sequencing** — Are prerequisites, migration order, intermediate states, rollout, rollback, and ownership clear enough to execute safely?
-7. **Blast radius** — Does the plan identify affected behavior, callers, data, configuration, operations, backward compatibility, and failure modes?
+7. **Blast radius** — Does the plan identify affected behavior, callers, data, configuration, operations, supported environments, backward compatibility, and failure modes?
 8. **Tests and verification** — Does it prove new and preserved behavior at the right layers, including integration seams, failure paths, migration, and platform-relevant checks?
 9. **Scope discipline** — Flag omissions that block the goal, shortcuts that make in-scope work incorrect, and additions that are unnecessary scope creep.
 
 ## Score and report
 
-State a 1–10 rubric before scoring. Score the fixed dimensions above and, when useful, major plan components. Do not score an unverifiable dimension as though it were inspected; mark it `insufficient evidence` and explain what is missing. Derive the overall score from risk and importance rather than a mechanical average.
+State a 1–10 rubric before scoring. Score the fixed dimensions above and, when useful, major plan components. Mark a genuinely irrelevant dimension `not applicable` without penalty; mark a relevant but unverifiable dimension `insufficient evidence` and explain what is missing. Derive the overall score from risk and importance rather than a mechanical average.
 
 Report in this order:
 

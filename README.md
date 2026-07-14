@@ -14,28 +14,24 @@ Portable workflow skills for coding-agent harnesses that support `SKILL.md`.
 
 ## Install
 
-Clone the repository, then expose the skills you want through a skill root your installed harness actually discovers. Keep the clone as the canonical source so updates do not create drifting copies. For example, on a Unix-like machine where `~/.agents/skills` is a verified discovery root:
+There is no universal skill directory. First verify the discovery roots, precedence, and link support of the installed harness version. Keep one clone as the canonical source; point harnesses at it natively when possible.
+
+On a Unix-like system with Bash, the bundled helper can create conservative machine-local symlinks. Replace `/verified/harness/skills` with a discovery root you have confirmed:
 
 ```bash
 git clone https://github.com/5omeOtherGuy/skills.git ~/.local/share/agent-workflow-skills
-mkdir -p ~/.agents/skills
-for skill in ~/.local/share/agent-workflow-skills/skills/*; do
-  ln -s "$skill" ~/.agents/skills/"$(basename "$skill")"
-done
-```
 
-Some harnesses discover the canonical hub directly. For a harness that does not, first verify its actual skill directory and symlink support. The `agents-hub` skill includes a conservative POSIX helper that requires explicit paths and supports a dry run:
-
-```bash
-~/.agents/skills/agents-hub/scripts/sync-skills.sh \
-  --hub "$HOME/.agents/skills" \
-  --target "/verified/harness/skills" \
+bash ~/.local/share/agent-workflow-skills/skills/agents-hub/scripts/sync-skills.sh \
+  --hub ~/.local/share/agent-workflow-skills/skills \
+  --target /verified/harness/skills \
   --dry-run
 ```
 
-Inspect the output, then repeat without `--dry-run`. The helper never overwrites real paths or foreign links and only prunes stale links when explicitly passed `--prune`. On platforms without POSIX symlinks, follow the skill's discovery workflow and use a verified native root, import, junction, or managed projection instead.
+Inspect the dry run, then repeat without `--dry-run`. Add `--skill implementation-instructions` (repeatable) to install only selected skills. The helper never overwrites real paths or foreign links and prunes stale links only with explicit `--prune`.
 
-Verify discovery and instruction precedence for the installed harness version before changing configuration. Filesystem wiring alone does not prove that a harness loaded a skill. Existing real skill directories are never safe to overwrite with links.
+Do not use the helper for clone-portable repository links: it creates absolute symlinks. On Windows or filesystems without reliable Unix symlinks, use a verified native discovery root, configured additional root, junction, or managed projection as described by `agents-hub`.
+
+After installation, start a clean harness session and verify actual discovery and triggering. Filesystem wiring alone is not proof that a harness loaded a skill.
 
 ## Layout
 

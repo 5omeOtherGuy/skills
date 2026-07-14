@@ -89,7 +89,7 @@ Use relative repository links when supported and required to survive clones. Pre
 
 Respect instruction precedence: a higher-precedence override can disconnect lower shared instructions even when every path exists. Preserve required bootstrap/import lines when adding harness-specific content, and verify whether layers merge or replace one another.
 
-For machine-local POSIX skill symlinks, use the bundled helper only with explicit, verified paths:
+For machine-local skill symlinks on a Unix-like system with Bash, use the bundled helper only with explicit, verified paths:
 
 ```bash
 bash scripts/sync-skills.sh \

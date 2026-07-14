@@ -12,10 +12,11 @@ Write a ready-to-paste prompt for a fresh session that has no memory of this con
 Inspect the actual task environment before writing:
 
 1. Read applicable repository/agent instructions, the authoritative specification or user request, and the relevant implementation and test paths.
-2. Detect the version-control and collaboration model rather than assuming Git or a hosted pull request. Inspect the current revision, branch/bookmark when applicable, working changes, remotes/upstream when present, and divergence using native tools.
-3. Refresh remote state only when available, safe, and permitted. Never disturb unfamiliar or uncommitted work to make the state cleaner. If state cannot be refreshed or verified, carry that limitation into the prompt.
-4. Confirm every current-behavior claim against files or executed checks. Distinguish observed facts, documented claims, and inferences.
-5. Verify that named commands, paths, dependencies, reference repositories, and review surfaces actually exist in this environment. Use platform-appropriate syntax; do not invent a familiar workflow.
+2. Determine whether the target session will share this filesystem, checkout, credentials, tools, and network access. When it will not, include repository/revision retrieval instructions and replace machine-local absolute paths with portable references.
+3. Detect the version-control and collaboration model rather than assuming Git or a hosted pull request. Inspect the current revision, branch/bookmark when applicable, working changes, remotes/upstream when present, and divergence using native tools.
+4. Refresh remote state only when available, safe, and permitted. Never disturb unfamiliar or uncommitted work to make the state cleaner. If state cannot be refreshed or verified, carry that limitation into the prompt.
+5. Confirm every current-behavior claim against files or executed checks. Distinguish observed facts, documented claims, and inferences.
+6. Verify that named commands, paths, dependencies, reference repositories, and review surfaces actually exist in this environment. Use platform-appropriate syntax; do not invent a familiar workflow.
 
 Then close only material decisions the environment cannot settle: implementation depth, scope boundaries, deferrals, compatibility target, review workflow, or acceptance bar. Ask one batched round using a structured-question tool when available. Do not re-ask answered questions or solicit preferences that would not change the prompt. If no answer is available, choose the least risky defensible option and label it as an assumption.
 
@@ -28,11 +29,11 @@ Name exactly what to implement in one sentence. Cite the authoritative issue, do
 </task>
 
 <current_state>
-Summarize the verified revision/workspace state, current behavior, relevant existing seams, working changes that must be preserved, and anything that could not be verified. Label time-sensitive facts as a snapshot the target session must re-check.
+Summarize the verified revision/workspace state, current behavior, relevant existing seams, working changes that must be preserved, and anything that could not be verified. If the target does not share the workspace, say how to obtain the exact project and revision. Label time-sensitive facts as a snapshot the target session must re-check.
 </current_state>
 
 <read_first>
-List at most 10 task-specific instruction, specification, architecture, decision, implementation, and test files. Put applicable repository/agent instructions first. For large files, name relevant sections, symbols, or line ranges. Do not include generic onboarding.
+List at most 10 task-specific instruction, specification, architecture, decision, implementation, and test files. Put applicable repository/agent instructions first. Prefer repository-relative paths; when another checkout or remote source is required, identify it unambiguously. For large files, name relevant sections, symbols, or line ranges. Do not include generic onboarding.
 </read_first>
 
 <verify_first>
@@ -60,11 +61,13 @@ State the implementation depth: minimal useful slice, full feature, or named sub
 <implementation_notes_requirement>
 Require a running `implementation-notes.html` reviewer-decision log. Before creating it, inspect and preserve any existing file; do not overwrite concurrent or unrelated notes. Record only unspecified decisions, assumptions, deviations, tradeoffs, constraints, caveats, compatibility concerns, follow-up risks, and reviewer warnings—not routine progress or sensitive data.
 
-Keep the file until every entry has been transferred verbatim in substance to the durable review artifact attached to the change (pull request, merge request, change request, or equivalent). If the workflow intentionally has no review artifact, transfer entries to a clearly labeled final-report section. Read the destination back when possible, or compare the prepared final-report section against the file. Delete the file only after verified transfer and ensure its deletion is included in the final change set. If transfer is blocked, retain the file and report the handoff incomplete. Follow approval rules for external artifact changes.
+Keep the file until every entry has been transferred verbatim in substance to a durable review artifact attached to the change (pull request, merge request, change request, reviewed issue, or equivalent) and read back. Delete it only after verified transfer and ensure deletion is included in the final change set.
+
+If the workflow has no durable artifact that can be updated and read back, include every entry in a clearly labeled final-report section but retain `implementation-notes.html`; final-response delivery cannot be verified before the response is sent. Report that durable handoff and deletion remain pending rather than risking the only copy. Follow approval rules for external artifact changes.
 </implementation_notes_requirement>
 
 <reporting_requirement>
-Require: changed files; checks executed and exact results; implemented scope; deferred scope with reasons; assumptions and verification limits; reference adoption and intentional non-adoption; review-artifact URL or no-artifact destination; confirmation of complete note transfer/read-back; and confirmation that the notes file was deleted only afterward. If blocked, require the file to remain and the handoff to be reported incomplete.
+Require: changed files; checks executed and exact results; implemented scope; deferred scope with reasons; assumptions and verification limits; reference adoption and intentional non-adoption; review-artifact URL or no-artifact status; and confirmation of complete note transfer/read-back and subsequent deletion. If no readable durable artifact exists or transfer is blocked, require the file to remain and the handoff to be reported pending.
 </reporting_requirement>
 
 <goal>
@@ -72,7 +75,7 @@ State the complete outcome, what user-visible or system capability it provides, 
 </goal>
 
 <definition_of_done>
-Give concrete observable conditions for preserved and new behavior, compatibility, tests, and integration. Name only validation commands confirmed to exist, including platform-specific variants when needed. Require complete durable note transfer and removal of the working notes file only after verification.
+Give concrete observable conditions for preserved and new behavior, compatibility, tests, and integration. Name only validation commands confirmed to exist, including platform-specific variants when needed. Require complete durable note transfer and removal of the working notes file only when that transfer was read back; otherwise require the file to remain with the pending handoff reported.
 </definition_of_done>
 
 <good_result>
