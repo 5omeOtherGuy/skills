@@ -5,11 +5,13 @@ set -euo pipefail
 
 usage() {
   cat <<'EOF'
-Usage: sync-skills.sh --hub PATH --target PATH [--target PATH ...] [--dry-run] [--prune]
+Usage: sync-skills.sh --hub PATH --target PATH [--target PATH ...]
+                      [--skill NAME ...] [--dry-run] [--prune]
 
 Options:
   --hub PATH      Canonical directory containing <name>/SKILL.md directories.
   --target PATH   Harness skill directory to receive links. Repeatable.
+  --skill NAME    Project only this skill. Repeatable; omit to project all skills.
   --dry-run       Print changes without modifying the filesystem.
   --prune         Remove broken target links whose recorded destination is in this hub.
   -h, --help      Show this help.
@@ -20,6 +22,7 @@ EOF
 
 hub=""
 targets=()
+requested_names=()
 dry_run=false
 prune=false
 
@@ -33,6 +36,11 @@ while (($#)); do
     --target)
       (($# >= 2)) || { echo "--target requires a path" >&2; exit 2; }
       targets+=("$2")
+      shift 2
+      ;;
+    --skill)
+      (($# >= 2)) || { echo "--skill requires a name" >&2; exit 2; }
+      requested_names+=("$2")
       shift 2
       ;;
     --dry-run)
@@ -60,16 +68,6 @@ done
 [[ -d "$hub" ]] || { echo "hub is not a directory: $hub" >&2; exit 2; }
 hub=$(cd "$hub" && pwd -P)
 
-run() {
-  if $dry_run; then
-    printf 'would run:'
-    printf ' %q' "$@"
-    printf '\n'
-  else
-    "$@"
-  fi
-}
-
 skills=()
 for skill in "$hub"/*; do
   [[ -d "$skill" && -f "$skill/SKILL.md" ]] || continue
@@ -83,6 +81,32 @@ done
 
 ((${#skills[@]} > 0)) || { echo "no valid skills found in hub: $hub" >&2; exit 1; }
 
+if ((${#requested_names[@]} > 0)); then
+  selected_skills=()
+  for requested in "${requested_names[@]}"; do
+    [[ "$requested" =~ ^[a-z0-9]+(-[a-z0-9]+)*$ ]] || {
+      echo "invalid skill name: $requested" >&2
+      exit 2
+    }
+
+    match=""
+    for skill in "${skills[@]}"; do
+      if [[ "${skill##*/}" == "$requested" ]]; then
+        match=$skill
+        break
+      fi
+    done
+    [[ -n "$match" ]] || { echo "skill not found in hub: $requested" >&2; exit 2; }
+
+    duplicate=false
+    for skill in "${selected_skills[@]}"; do
+      [[ "$skill" == "$match" ]] && duplicate=true
+    done
+    $duplicate || selected_skills+=("$match")
+  done
+  skills=("${selected_skills[@]}")
+fi
+
 for target in "${targets[@]}"; do
   [[ -n "$target" && "$target" != "/" ]] || { echo "unsafe target: ${target:-<empty>}" >&2; exit 2; }
   if [[ -e "$target" && ! -d "$target" ]]; then
@@ -91,7 +115,11 @@ for target in "${targets[@]}"; do
   fi
 
   if [[ ! -d "$target" ]]; then
-    run mkdir -p "$target"
+    if $dry_run; then
+      echo "would create target $target"
+    else
+      mkdir -p "$target"
+    fi
   fi
 
   if $prune && [[ -d "$target" ]]; then
@@ -101,8 +129,12 @@ for target in "${targets[@]}"; do
       case "$destination" in
         "$hub"/*)
           if [[ ! -e "$link" ]]; then
-            run rm -- "$link"
-            echo "pruned  $link"
+            if $dry_run; then
+              echo "would prune $link"
+            else
+              rm -- "$link"
+              echo "pruned  $link"
+            fi
           fi
           ;;
       esac
@@ -118,14 +150,27 @@ for target in "${targets[@]}"; do
       if [[ "$destination" == "$skill" ]]; then
         continue
       fi
+      if [[ -e "$link" ]]; then
+        resolved_link=$(cd "$link" && pwd -P)
+        resolved_skill=$(cd "$skill" && pwd -P)
+        if [[ "$resolved_link" == "$resolved_skill" ]]; then
+          continue
+        fi
+      fi
       echo "SKIP foreign link: $link -> $destination" >&2
     elif [[ -e "$link" ]]; then
       echo "SKIP existing path: $link" >&2
+    elif $dry_run; then
+      echo "would link $link -> $skill"
     else
-      run ln -s "$skill" "$link"
+      ln -s "$skill" "$link"
       echo "linked  $link -> $skill"
     fi
   done
 done
 
-echo "sync complete"
+if $dry_run; then
+  echo "dry run complete"
+else
+  echo "sync complete"
+fi
