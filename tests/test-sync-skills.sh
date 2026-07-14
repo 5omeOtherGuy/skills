@@ -73,6 +73,19 @@ if bash "$script" --hub "$hub" --target "$missing_target" --skill absent-skill >
 fi
 [[ ! -e "$missing_target" ]] || fail "unknown skill selection mutated the filesystem"
 
+# Any target collision fails before creating other links.
+hub="$tmp/conflict hub"
+target="$tmp/conflict target"
+make_skill "$hub" alpha-skill
+make_skill "$hub" beta-skill
+mkdir -p "$target/alpha-skill"
+if output=$(bash "$script" --hub "$hub" --target "$target" 2>&1); then
+  fail "target collision reported success"
+fi
+assert_contains "$output" "existing path" "target collision is reported"
+[[ -d "$target/alpha-skill" && ! -L "$target/alpha-skill" ]] || fail "target collision was overwritten"
+[[ ! -e "$target/beta-skill" && ! -L "$target/beta-skill" ]] || fail "target was partially synchronized after collision"
+
 if ((failures > 0)); then
   echo "$failures test(s) failed" >&2
   exit 1
