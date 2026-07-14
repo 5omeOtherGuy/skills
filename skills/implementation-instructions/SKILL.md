@@ -1,68 +1,82 @@
 ---
 name: implementation-instructions
-description: Write a fully self-contained implementation prompt for a fresh agent session, grounded in verified repository state, with task, read-first list, scope, deferrals, durable implementation-note handoff, and definition of done. Use when the user wants to hand a task to another session or agent, asks for a handoff prompt, or says "write implementation instructions".
+description: Produce a verified, self-contained implementation prompt for a fresh agent session, including current state, read-first sources, scope, constraints, deferrals, durable implementation-note handoff, verification, and definition of done. Use when handing a coding task to another session or agent or when the user asks for implementation instructions or a handoff prompt.
 ---
 
 # Implementation instructions for a fresh session
 
-Write a prompt for a fresh session that will implement the task given with the invocation. The target session has no shared memory with this one, so the prompt you produce must be fully self-contained: it must carry every piece of context, constraint, and success criterion the other session needs.
+Write a ready-to-paste prompt for a fresh session that has no memory of this conversation. Carry every verified fact, constraint, open assumption, and success condition needed to implement the task without reconstructing hidden context.
 
-Before writing the prompt, establish ground truth: verify the ACTUAL current state of the repo and the work rather than describing it from memory, from this conversation, or from a local checkout you have not just confirmed. Fetch when safe and available, then compare the working branch against its upstream if one exists (e.g. `git fetch`, then `git status -sb` and `git log --oneline ..@{u}` / `@{u}..`) and note whether local is behind/ahead/diverged. Read the real files, modules, and spec/issue the task touches as they exist now, and confirm anything you intend to assert about current behavior against that observed state. Anything you cannot verify — no upstream, no remote, blocked fetch, missing spec — must be stated as a limitation in the produced prompt, never guessed. Every fact in the sections below must reflect observed current state, not inference.
+## Establish ground truth
 
-Then close open decisions before writing. If the invocation leaves a genuine choice open that repo state cannot settle — the scope boundary (minimal slice vs. full feature), which items to defer, the target session's workflow (PR-based or not), or the acceptance bar — ask the user in one batched round (use the harness's structured-question tool if available, otherwise plain text). Ask only questions whose answers would change the produced prompt; never re-ask what the invocation or the repo already answers, and never pad with preference questions. If an answer cannot be obtained, pick the most defensible option and record it as an explicit assumption in the produced prompt.
+Inspect the actual task environment before writing:
 
-Produce the prompt for the target session using the sections below, IN THIS ORDER. Fill each from the task and context above; if a section has no value for this task, state that explicitly rather than dropping it. Do not pad with prose — every line must carry an instruction or a fact the target session needs. Goal, definition of done, and good result come LAST, on purpose.
+1. Read applicable repository/agent instructions, the authoritative specification or user request, and the relevant implementation and test paths.
+2. Detect the version-control and collaboration model rather than assuming Git or a hosted pull request. Inspect the current revision, branch/bookmark when applicable, working changes, remotes/upstream when present, and divergence using native tools.
+3. Refresh remote state only when available, safe, and permitted. Never disturb unfamiliar or uncommitted work to make the state cleaner. If state cannot be refreshed or verified, carry that limitation into the prompt.
+4. Confirm every current-behavior claim against files or executed checks. Distinguish observed facts, documented claims, and inferences.
+5. Verify that named commands, paths, dependencies, reference repositories, and review surfaces actually exist in this environment. Use platform-appropriate syntax; do not invent a familiar workflow.
+
+Then close only material decisions the environment cannot settle: implementation depth, scope boundaries, deferrals, compatibility target, review workflow, or acceptance bar. Ask one batched round using a structured-question tool when available. Do not re-ask answered questions or solicit preferences that would not change the prompt. If no answer is available, choose the least risky defensible option and label it as an assumption.
+
+## Produce the prompt
+
+Use the sections below in this order. Keep every section, writing `None` plus a brief reason when it genuinely does not apply. Every line must be an instruction or verified fact useful to the target session. Keep goal, definition of done, and good result last.
 
 <task>
-One line naming exactly what to implement, with a reference to the authoritative spec (issue, doc section, ticket, path).
+Name exactly what to implement in one sentence. Cite the authoritative issue, document, ticket, path, or state that the user request is the only specification.
 </task>
 
+<current_state>
+Summarize the verified revision/workspace state, current behavior, relevant existing seams, working changes that must be preserved, and anything that could not be verified. Label time-sensitive facts as a snapshot the target session must re-check.
+</current_state>
+
 <read_first>
-A curated list of the most relevant files/docs the target session must read before acting on this specific task. No more than 10 files. No general onboarding. Include only task-specific rules, ADRs, design docs, specs, or code paths that materially constrain the implementation. For large files, include relevant symbols/sections and line ranges where useful.
+List at most 10 task-specific instruction, specification, architecture, decision, implementation, and test files. Put applicable repository/agent instructions first. For large files, name relevant sections, symbols, or line ranges. Do not include generic onboarding.
 </read_first>
 
 <verify_first>
-Include an explicit instruction to confirm the working state is current before editing — sync the branch with its remote if an upstream exists, and verify against the real files, not a stale local checkout or this prompt's snapshot, since state may have drifted between when this prompt was written and when it runs. If remote verification is unavailable, instruct the target session to state that limitation before proceeding.
+Tell the target session to re-check repository state and every drift-prone fact before editing, using the repository's native version-control workflow when one exists. Require it to preserve unfamiliar work and report unavailable remote verification rather than guessing.
 </verify_first>
 
+<environment_and_constraints>
+State verified operating-system, shell, runtime/toolchain, package-manager, version-control, workspace, permission/approval, security, compatibility, and repository-specific constraints only where they affect this task.
+</environment_and_constraints>
+
 <reference_sources_and_adoption>
-- Where relevant prior art lives (paths, repos).
-- What to adopt, from where, and why — and how closely (port vs. conceptual reference).
+List relevant prior art and what to adopt from each source, why, and how closely: direct port, adapted implementation, interface pattern, or conceptual reference. Distinguish checked-out, remote-only, and unavailable sources.
 </reference_sources_and_adoption>
 
 <do_not_adopt>
-State briefly what NOT to pull in, listed explicitly (architectures, systems, dependencies, features that are out of scope).
+List architectures, dependencies, features, compatibility burdens, and unrelated cleanup that must remain out of scope.
 </do_not_adopt>
 
 <scope_to_implement>
-- How much to build (e.g. minimal useful slice, full feature, specific subset) — state which.
-- A numbered, concrete list of the units of work, each independently checkable.
-- Distinguish and never conflate:
-    - Shortcut (forbidden): doing in-scope work cheaply, incompletely, or incorrectly.
-    - Deferral (allowed): declaring something out-of-scope — every deferral must name what and why.
+State the implementation depth: minimal useful slice, full feature, or named subset. Give a numbered list of independently checkable work units, including required compatibility or migration work. Distinguish:
+- Shortcut (forbidden): doing in-scope work incompletely or incorrectly.
+- Deferral (allowed): explicitly excluding named work for a stated reason.
 </scope_to_implement>
 
 <implementation_notes_requirement>
-Keep a running `implementation-notes.html` file throughout the work. Update it whenever you make or discover a decision that is not explicit in the spec, including decisions you had to make, changes from the spec or from an initial approach, tradeoffs and why, constraints, caveats, follow-up risks, or reviewer context someone must know to review the work. Keep the notes concise, factual, and organized in HTML. Do not use the notes file as a progress log for routine steps; record only information that affects understanding or reviewing the implementation.
+Require a running `implementation-notes.html` reviewer-decision log. Before creating it, inspect and preserve any existing file; do not overwrite concurrent or unrelated notes. Record only unspecified decisions, assumptions, deviations, tradeoffs, constraints, caveats, compatibility concerns, follow-up risks, and reviewer warnings—not routine progress or sensitive data.
 
-Treat these notes as required review material, not a disposable working file. Before completing the task, copy every entry into a clearly labeled `Implementation notes` section of the PR body; converting HTML to readable Markdown is allowed, but omission or replacement with a vague summary is not. Read the PR body back and confirm the transfer succeeded. Only then delete `implementation-notes.html`; if it is tracked, commit and push its deletion so it is absent from the final PR diff. Never delete or truncate the file before the verified transfer. In a workflow that intentionally produces no PR, require the same verified transfer into the final report instead. If a PR is expected but cannot be created or its body cannot be updated, keep the file, report the blocker, and do not claim the handoff is complete. Follow the active harness's approval rules for creating or editing a PR.
+Keep the file until every entry has been transferred verbatim in substance to the durable review artifact attached to the change (pull request, merge request, change request, or equivalent). If the workflow intentionally has no review artifact, transfer entries to a clearly labeled final-report section. Read the destination back when possible, or compare the prepared final-report section against the file. Delete the file only after verified transfer and ensure its deletion is included in the final change set. If transfer is blocked, retain the file and report the handoff incomplete. Follow approval rules for external artifact changes.
 </implementation_notes_requirement>
 
 <reporting_requirement>
-What the final response must contain: files changed; tests run and results; exact implemented scope; exact deferred scope and why each deferral belongs outside the chosen scope; comparison against the reference sources (what was adopted, what was intentionally not); the PR URL (or, in a no-PR workflow, where the work landed); confirmation that every implementation-note entry is in the PR body (or the agreed notes destination); and confirmation that `implementation-notes.html` was deleted only after that transfer was read back successfully. If the transfer is blocked, report that the file was retained and the handoff remains incomplete.
+Require: changed files; checks executed and exact results; implemented scope; deferred scope with reasons; assumptions and verification limits; reference adoption and intentional non-adoption; review-artifact URL or no-artifact destination; confirmation of complete note transfer/read-back; and confirmation that the notes file was deleted only afterward. If blocked, require the file to remain and the handoff to be reported incomplete.
 </reporting_requirement>
 
 <goal>
-The complete outcome, start to finish, and what it enables to be built on next.
+State the complete outcome, what user-visible or system capability it provides, and what it enables next without expanding current scope.
 </goal>
 
 <definition_of_done>
-Concrete, checkable conditions: existing behavior preserved, new behavior present and observable, tests proving it, the exact validation/gate commands to run, every implementation-note entry present in the verified PR body (or the agreed notes destination), and `implementation-notes.html` absent from the final PR diff only after that verified transfer.
+Give concrete observable conditions for preserved and new behavior, compatibility, tests, and integration. Name only validation commands confirmed to exist, including platform-specific variants when needed. Require complete durable note transfer and removal of the working notes file only after verification.
 </definition_of_done>
 
 <good_result>
-The success exemplar / acceptance bar: what a good implementation looks like, and explicitly what
-it should NOT turn into (scope creep, ported machinery, premature abstraction).
+Describe the acceptance bar and explicitly reject likely failure modes: scope creep, copied machinery, hidden deferrals, platform assumptions, premature abstractions, or test-only shortcuts.
 </good_result>
 
-Output only the finished prompt for the target session — ready to paste, with no commentary about how you wrote it.
+Output only the finished target-session prompt, with no commentary about how it was produced.

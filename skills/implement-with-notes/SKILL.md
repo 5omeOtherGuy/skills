@@ -1,33 +1,41 @@
 ---
 name: implement-with-notes
-description: Implement a specification while maintaining implementation-notes.html, transfer every reviewer-facing entry into its durable review destination, verify the transfer, then delete the file. Use when the user asks to implement something "with notes", wants a durable review decision log, or provides a specification whose execution will involve judgment calls.
+description: Implement a specification while maintaining implementation-notes.html as a guarded reviewer-decision log, then transfer every entry to the workflow's durable review artifact and verify the handoff before deleting the file. Use when the user asks to implement "with notes," wants durable implementation rationale, or supplies a specification that requires judgment calls.
 ---
 
 # Implement with reviewer notes
 
-Implement the spec given with the invocation.
+Implement the specification supplied with the invocation while preserving every reviewer-relevant decision.
 
-Where the spec is ambiguous, default to deciding yourself and recording the decision in the notes — that is what the notes are for. Ask the user only when the spec leaves a material fork that changes what gets built (conflicting requirements, two incompatible readings of scope, a missing constraint you cannot infer from the codebase), batched into one round (use the harness's structured-question tool if available, otherwise plain text). If no answer is available, take the most defensible path and record it as an explicit assumption in the notes.
+## Resolve material ambiguity
 
-Keep a running `implementation-notes.html` file throughout the work. Update it whenever you make or discover a decision that is not explicit in the spec, including:
+Default to making routine implementation decisions and recording them. Ask the user only when the specification leaves a material fork that changes what gets built: conflicting requirements, incompatible scope readings, or a missing constraint that repository evidence cannot settle. Batch questions into one round using a structured-question tool when available. If no answer is available, choose the most defensible path and record the assumption.
 
-- decisions you had to make that were not specified
-- things you had to change from the spec or from an initial approach
-- tradeoffs you made and why
-- constraints, caveats, follow-up risks, or reviewer context someone must know to review the work
+## Maintain the working notes
 
-Make the notes useful to a reviewer: keep them concise, factual, and organized in HTML. Do not use the notes file as a progress log for routine steps; record only information that affects understanding or reviewing the implementation.
+Before creating `implementation-notes.html`, check whether it already exists. Read and preserve it; never truncate or replace an existing file. Continue it only when it belongs to this task. If ownership is unclear or it belongs to concurrent work, resolve that conflict before implementation.
 
-## Durable review handoff
+Update the file whenever you make or discover a decision not explicit in the specification, including:
 
-The PR body is the authoritative final home because reviewers see it with the diff and it survives squash merging. Treat the notes file as a guarded staging artifact:
+- an unspecified decision or assumption;
+- a change from the specification or initial approach;
+- a tradeoff and its rationale;
+- a constraint, caveat, compatibility issue, follow-up risk, or reviewer warning.
 
-1. Keep `implementation-notes.html` intact until the implementation and notes are final.
-2. Copy every note entry into a clearly labeled `Implementation notes` section of the PR body. Converting the HTML to readable Markdown is allowed; omitting entries or replacing them with a summary is not.
-3. Read the PR body back and verify that the complete transfer succeeded.
-4. Only after verification, delete `implementation-notes.html`. If it is tracked, commit and push the deletion so the file is absent from the final PR diff.
-5. If notes change afterward, recreate or restore the file, update and verify the PR body again, then delete the file again.
+Keep entries concise, factual, organized HTML. Do not use the file as a routine progress log. Do not record credentials, secrets, personal data, exploit details inappropriate for the review audience, or other sensitive material; record a safe reference instead.
 
-Never delete, truncate, overwrite, or exclude the notes before the verified PR-body transfer. In a workflow that intentionally produces no PR, perform the same verified transfer into the final report instead. If a PR is expected but cannot be created or its body cannot be updated, retain the file, report the blocker, and do not claim the review handoff is complete. Follow the active harness's approval rules for creating or editing a PR.
+## Complete the durable handoff
 
-In the final response, provide the PR URL (or, in a no-PR workflow, where the notes landed) and confirm both the verified transfer and subsequent file deletion. If blocked, state that the file remains and the handoff is incomplete.
+Use the review surface attached to the change—such as a pull request, merge request, change request, or equivalent—as the preferred durable destination. If the workflow intentionally has no such artifact, use a clearly labeled `Implementation notes` section in the final report.
+
+1. Keep `implementation-notes.html` intact until implementation and notes are final.
+2. Transfer every entry, without replacing entries with a vague summary. Converting HTML to readable Markdown is allowed.
+3. Read the destination back when the platform permits. For a final-report handoff, compare the prepared section against the file before sending it.
+4. Only after complete transfer is verified, delete `implementation-notes.html` and ensure the deletion is included in the final change set or synchronized workspace.
+5. If notes change afterward, restore the file, update and verify the durable destination again, then delete it again.
+
+Never delete, truncate, hide, or exclude the notes before verified transfer. If the expected review artifact cannot be created or updated, retain the file, report the blocker, and do not claim the handoff is complete. Follow the active environment's approval rules before creating, editing, or publishing external review artifacts.
+
+## Final response
+
+Provide the review-artifact URL or identify the no-artifact destination. Confirm that every entry was transferred and read back, and that the working file was deleted only afterward. If blocked, state that the file remains and the handoff is incomplete.
