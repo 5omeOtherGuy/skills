@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Project one canonical skill directory into one or more POSIX harness skill
+# Project one canonical skill directory into one or more Unix-like harness skill
 # directories using conservative symlinks. Discovery configuration is external.
 set -euo pipefail
 
@@ -107,12 +107,48 @@ if ((${#requested_names[@]} > 0)); then
   skills=("${selected_skills[@]}")
 fi
 
+link_matches_skill() {
+  local link=$1 skill=$2 destination resolved_link resolved_skill
+  [[ -L "$link" ]] || return 1
+  destination=$(readlink "$link")
+  [[ "$destination" == "$skill" ]] && return 0
+  [[ -e "$link" ]] || return 1
+  resolved_link=$(cd "$link" && pwd -P) || return 1
+  resolved_skill=$(cd "$skill" && pwd -P) || return 1
+  [[ "$resolved_link" == "$resolved_skill" ]]
+}
+
+# Validate every target before changing any of them so collisions cannot leave a
+# partial projection.
+conflicts=0
 for target in "${targets[@]}"; do
   [[ -n "$target" && "$target" != "/" ]] || { echo "unsafe target: ${target:-<empty>}" >&2; exit 2; }
   if [[ -e "$target" && ! -d "$target" ]]; then
     echo "target exists but is not a directory: $target" >&2
     exit 2
   fi
+  [[ -d "$target" ]] || continue
+
+  for skill in "${skills[@]}"; do
+    link="$target/${skill##*/}"
+    if [[ -L "$link" ]]; then
+      if ! link_matches_skill "$link" "$skill"; then
+        echo "SKIP foreign link: $link -> $(readlink "$link")" >&2
+        conflicts=$((conflicts + 1))
+      fi
+    elif [[ -e "$link" ]]; then
+      echo "SKIP existing path: $link" >&2
+      conflicts=$((conflicts + 1))
+    fi
+  done
+done
+
+if ((conflicts > 0)); then
+  echo "sync aborted: $conflicts target conflict(s); no changes made" >&2
+  exit 1
+fi
+
+for target in "${targets[@]}"; do
 
   if [[ ! -d "$target" ]]; then
     if $dry_run; then
@@ -146,20 +182,14 @@ for target in "${targets[@]}"; do
     link="$target/$name"
 
     if [[ -L "$link" ]]; then
-      destination=$(readlink "$link")
-      if [[ "$destination" == "$skill" ]]; then
+      if link_matches_skill "$link" "$skill"; then
         continue
       fi
-      if [[ -e "$link" ]]; then
-        resolved_link=$(cd "$link" && pwd -P)
-        resolved_skill=$(cd "$skill" && pwd -P)
-        if [[ "$resolved_link" == "$resolved_skill" ]]; then
-          continue
-        fi
-      fi
-      echo "SKIP foreign link: $link -> $destination" >&2
+      echo "sync aborted: target changed during sync: $link" >&2
+      exit 1
     elif [[ -e "$link" ]]; then
-      echo "SKIP existing path: $link" >&2
+      echo "sync aborted: target changed during sync: $link" >&2
+      exit 1
     elif $dry_run; then
       echo "would link $link -> $skill"
     else
