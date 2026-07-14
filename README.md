@@ -14,7 +14,7 @@ Portable workflow skills for coding-agent harnesses that support `SKILL.md`.
 
 ## Install
 
-Clone the repository, then link the skills you want into your harness's discovered skill directory. Keep the clone as the canonical source so updates do not create drifting copies.
+Clone the repository, then expose the skills you want through a skill root your installed harness actually discovers. Keep the clone as the canonical source so updates do not create drifting copies. For example, on a Unix-like machine where `~/.agents/skills` is a verified discovery root:
 
 ```bash
 git clone https://github.com/5omeOtherGuy/skills.git ~/.local/share/agent-workflow-skills
@@ -24,13 +24,18 @@ for skill in ~/.local/share/agent-workflow-skills/skills/*; do
 done
 ```
 
-Some harnesses discover `~/.agents/skills` directly. For a harness that does not, link the selected skills from the hub into its own skills directory. The `agents-hub` skill includes a conservative sync script for the common Claude Code setup:
+Some harnesses discover the canonical hub directly. For a harness that does not, first verify its actual skill directory and symlink support. The `agents-hub` skill includes a conservative POSIX helper that requires explicit paths and supports a dry run:
 
 ```bash
-~/.agents/skills/agents-hub/scripts/sync-skills.sh
+~/.agents/skills/agents-hub/scripts/sync-skills.sh \
+  --hub "$HOME/.agents/skills" \
+  --target "/verified/harness/skills" \
+  --dry-run
 ```
 
-Verify discovery behavior for the installed harness version before changing configuration. Existing real skill directories are never safe to overwrite with links.
+Inspect the output, then repeat without `--dry-run`. The helper never overwrites real paths or foreign links and only prunes stale links when explicitly passed `--prune`. On platforms without POSIX symlinks, follow the skill's discovery workflow and use a verified native root, import, junction, or managed projection instead.
+
+Verify discovery and instruction precedence for the installed harness version before changing configuration. Filesystem wiring alone does not prove that a harness loaded a skill. Existing real skill directories are never safe to overwrite with links.
 
 ## Layout
 
